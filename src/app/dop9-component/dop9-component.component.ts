@@ -1,22 +1,27 @@
-import {Component, OnDestroy} from '@angular/core';
-import {CommonModule, NgIf} from "@angular/common";
+import {Component, Inject, OnDestroy, OnInit, PLATFORM_ID} from '@angular/core';
+import {CommonModule, isPlatformServer, NgIf} from "@angular/common";
 import {FormsModule} from "@angular/forms";
 
 @Component({
   selector: 'app-dop9-component',
   standalone: true,
-  imports: [CommonModule,NgIf, FormsModule ],
+  imports: [CommonModule,NgIf, FormsModule],
   templateUrl: './dop9-component.component.html',
   styleUrl: './dop9-component.component.scss'
 })
-export class MyComponent implements OnDestroy {
+export class MyComponent implements OnInit, OnDestroy {
   currentTime: string = '';
   is24Format: boolean = true;
-  timer: ReturnType<typeof setInterval>;
+  timer: ReturnType<typeof setInterval>|null = null;
 
-  constructor() {
-    this.updateTime();
-    this.timer = setInterval(this.updateTime.bind(this), 1000);
+  constructor(@Inject(PLATFORM_ID) private platform: Object) {
+
+  }
+  ngOnInit() {
+    if (!isPlatformServer(this.platform)) {
+      this.updateTime();
+      this.timer = setInterval(this.updateTime.bind(this), 1000);
+    }
   }
 
   updateTime() {
@@ -30,7 +35,9 @@ export class MyComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    clearInterval(this.timer);
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
   }
 
 }
